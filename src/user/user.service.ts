@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Constants } from 'src/utils/constants';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
@@ -58,9 +58,11 @@ export class UserService {
       });
     }
   }
-  
+
   async updateUser(id: number, updateUserDto: UpdateUserDto) {
-    const user = await this.UserRepository.findOneOrFail({ where: { id: id } });
+    const user = await this.UserRepository.findOneOrFail({
+      where: { id: id, email: Not(updateUserDto.email) },
+    });
     if (user) {
       return await this.UserRepository.save({
         ...user,

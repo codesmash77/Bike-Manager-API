@@ -37,6 +37,7 @@ export class ReviewService {
         userId,
         bikeId,
       );
+
     if (reservation && reservation.status !== 'cancelled') {
       review.userId = userId;
       review.bikeId = bikeId;
@@ -44,9 +45,23 @@ export class ReviewService {
       reviews.forEach((r, i) => {
         avg += r.rating;
       });
-      bike.avgRating = (avg + review?.rating) / (reviews.length + 1);
-      await this.bikeService.saveBike(bike);
-      return await this.ReviewRepository.save(review);
+      const rev = await this.ReviewRepository.findOne({
+        where: { bikeId: bikeId, userId: userId },
+      });
+      if (!rev) {
+        bike.avgRating = (avg + review?.rating) / (reviews.length + 1);
+        await this.bikeService.saveBike(bike);
+        return await this.ReviewRepository.save(review);
+      } else {
+        throw new HttpException(
+          {
+            status: HttpStatus.UNAUTHORIZED,
+            error:
+              'UNAUTHORIZED! User has already rated this bike, so he cannot add another review!',
+          },
+          HttpStatus.UNAUTHORIZED,
+        );
+      }
     } else {
       throw new HttpException(
         {
