@@ -92,7 +92,7 @@ export class ReservationService {
   }
 
   async findReserveByUserIdAndBikeId(userId: number, bikeId: number) {
-    return await this.ReservationRepository.findOneOrFail({
+    return await this.ReservationRepository.findOne({
       where: { userId: userId, bikeId: bikeId },
     });
   }

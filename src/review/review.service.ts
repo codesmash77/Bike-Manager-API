@@ -5,6 +5,7 @@ import {
   Pagination,
   paginate,
 } from 'nestjs-typeorm-paginate';
+import { BikeService } from 'src/bike/bike.service';
 import { ReservationService } from 'src/reservation/reservation.service';
 import { Repository } from 'typeorm';
 import { CreateReviewDto } from './dto/create-review.dto';
@@ -17,6 +18,7 @@ export class ReviewService {
     @InjectRepository(Review)
     private ReviewRepository: Repository<Review>,
     private reservationService: ReservationService,
+    private bikeService: BikeService,
   ) {}
 
   async create(
@@ -28,7 +30,8 @@ export class ReviewService {
     review.comment = createReviewDto.comment;
     review.rating = createReviewDto.rating;
     review.userName = createReviewDto.userName;
-
+    let avg = 0;
+    const bike = await this.bikeService.findOne(bikeId);
     const reservation =
       await this.reservationService.findReserveByUserIdAndBikeId(
         userId,
@@ -37,6 +40,12 @@ export class ReviewService {
     if (reservation && reservation.status !== 'cancelled') {
       review.userId = userId;
       review.bikeId = bikeId;
+      const reviews = await this.findAllReviewsByBikeId(bikeId);
+      reviews.forEach((r, i) => {
+        avg += r.rating;
+      });
+      bike.avgRating = (avg + review?.rating) / (reviews.length + 1);
+      await this.bikeService.saveBike(bike);
       return await this.ReviewRepository.save(review);
     } else {
       throw new HttpException(

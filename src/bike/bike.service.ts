@@ -58,6 +58,28 @@ export class BikeService {
       .andWhere('bike.avgRating <= :avgRating', {
         avgRating: avgRating,
       })
+      .andWhere('bike.isAvailable = :isAvailable', {
+        isAvailable: true,
+      })
+      .orderBy('bike.id', 'DESC');
+    return paginate<Bike>(queryBuilder, options);
+  }
+
+    async findAllAdmin(
+    model: string,
+    color: string,
+    location: string,
+    avgRating: number,
+    options: IPaginationOptions,
+  ): Promise<Pagination<Bike>> {
+    const queryBuilder = await this.BikeRepository.createQueryBuilder('bike');
+    queryBuilder
+      .where('bike.model like :model', { model: `%${model}%` })
+      .andWhere('bike.color like :color', { color: `%${color}%` })
+      .andWhere('bike.location like :location', { location: `%${location}%` })
+      .andWhere('bike.avgRating <= :avgRating', {
+        avgRating: avgRating,
+      })
       .orderBy('bike.id', 'DESC');
     return paginate<Bike>(queryBuilder, options);
   }
@@ -86,5 +108,9 @@ export class BikeService {
       return await this.BikeRepository.delete(bikeId);
     } else
       return console.error('Regular Users are not authorised to delete Bikes');
+  }
+
+  async saveBike(bike: Bike) {
+    return this.BikeRepository.save({ ...bike });
   }
 }
