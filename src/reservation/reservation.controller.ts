@@ -79,16 +79,18 @@ export class ReservationController {
     return this.reservationService.findReserveByBikeId(options, +bikeId);
   }
 
-  @Get(':userId/:bikeId')
+  @Get(':userId/:bikeId/:resId')
   @ApiSecurity('JWT-auth')
   @UseGuards(JwtAuthGuard)
   findReserveByUserIdAndBikeId(
     @Param('userId') userId: string,
     @Param('bikeId') bikeId: string,
+    @Param('resId') resId: string,
   ) {
     return this.reservationService.findReserveByUserIdAndBikeId(
       +userId,
       +bikeId,
+      +resId,
     );
   }
 

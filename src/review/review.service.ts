@@ -25,6 +25,7 @@ export class ReviewService {
     createReviewDto: CreateReviewDto,
     userId: number,
     bikeId: number,
+    resId: number,
   ) {
     const review: Review = new Review();
     review.comment = createReviewDto.comment;
@@ -36,6 +37,7 @@ export class ReviewService {
       await this.reservationService.findReserveByUserIdAndBikeId(
         userId,
         bikeId,
+        resId,
       );
 
     if (reservation && reservation.status !== 'cancelled') {

@@ -7,7 +7,7 @@ import {
 } from 'nestjs-typeorm-paginate';
 import { BikeService } from 'src/bike/bike.service';
 import { UserService } from 'src/user/user.service';
-import { Repository } from 'typeorm';
+import { LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { UpdateReservationDto } from './dto/update-reservation.dto';
@@ -36,7 +36,15 @@ export class ReservationService {
 
     const user = await this.userService.findUserById(userId);
     const bike = await this.bikeService.findOne(bikeId);
-    const condition = await this.findReserveByUserIdAndBikeId(userId, bikeId);
+    const condition = await this.ReservationRepository.findOne({
+      where: {
+        userId: userId,
+        bikeId: bikeId,
+        startDate: LessThanOrEqual(createReservationDto.startDate),
+        endDate: MoreThanOrEqual(createReservationDto.startDate),
+      },
+    });
+
     if (user && bike && !condition) {
       reservation.userId = userId;
       reservation.bikeId = bikeId;
@@ -91,9 +99,13 @@ export class ReservationService {
     return await paginate<Reservation>(queryBuilder, options);
   }
 
-  async findReserveByUserIdAndBikeId(userId: number, bikeId: number) {
+  async findReserveByUserIdAndBikeId(
+    userId: number,
+    bikeId: number,
+    resId: number,
+  ) {
     return await this.ReservationRepository.findOne({
-      where: { userId: userId, bikeId: bikeId },
+      where: { userId: userId, bikeId: bikeId, id: resId },
     });
   }
 

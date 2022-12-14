@@ -24,9 +24,10 @@ export class ReviewController {
   create(
     @Param('userId') userId: string,
     @Param('bikeId') bikeId: string,
+    @Param('resId') resId: string,
     @Body() createReviewDto: CreateReviewDto,
   ) {
-    return this.reviewService.create(createReviewDto, +userId, +bikeId);
+    return this.reviewService.create(createReviewDto, +userId, +bikeId, +resId);
   }
 
   @Get('/Bike/:bikeId')
