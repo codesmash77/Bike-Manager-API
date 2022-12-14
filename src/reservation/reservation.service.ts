@@ -7,7 +7,13 @@ import {
 } from 'nestjs-typeorm-paginate';
 import { BikeService } from 'src/bike/bike.service';
 import { UserService } from 'src/user/user.service';
-import { LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
+import {
+  LessThan,
+  LessThanOrEqual,
+  MoreThan,
+  MoreThanOrEqual,
+  Repository,
+} from 'typeorm';
 
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { UpdateReservationDto } from './dto/update-reservation.dto';
@@ -40,11 +46,11 @@ export class ReservationService {
       where: {
         userId: userId,
         bikeId: bikeId,
-        startDate: LessThanOrEqual(createReservationDto.startDate),
-        endDate: MoreThanOrEqual(createReservationDto.startDate),
+        startDate: LessThan(createReservationDto.startDate),
+        endDate: MoreThan(createReservationDto.startDate),
       },
     });
-
+    console.log(condition);
     if (user && bike && !condition) {
       reservation.userId = userId;
       reservation.bikeId = bikeId;
