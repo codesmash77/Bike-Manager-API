@@ -48,9 +48,10 @@ export class ReviewService {
         avg += r.rating;
       });
       const rev = await this.ReviewRepository.findOne({
-        where: { userId: userId, bikeId: bikeId, id: resId },
+        where: { userId: userId, bikeId: bikeId, resId: resId },
       });
       if (!rev) {
+        review.resId = resId;
         bike.avgRating = Math.floor(
           (avg + review?.rating) / (reviews.length + 1),
         );
