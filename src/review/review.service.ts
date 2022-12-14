@@ -39,7 +39,7 @@ export class ReviewService {
         bikeId,
         resId,
       );
-
+    console.log(reservation);
     if (reservation && reservation.status !== 'cancelled') {
       review.userId = userId;
       review.bikeId = bikeId;
@@ -48,10 +48,12 @@ export class ReviewService {
         avg += r.rating;
       });
       const rev = await this.ReviewRepository.findOne({
-        where: { bikeId: bikeId, userId: userId },
+        where: { userId: userId, bikeId: bikeId, id: resId },
       });
       if (!rev) {
-        bike.avgRating = (avg + review?.rating) / (reviews.length + 1);
+        bike.avgRating = Math.floor(
+          (avg + review?.rating) / (reviews.length + 1),
+        );
         await this.bikeService.saveBike(bike);
         return await this.ReviewRepository.save(review);
       } else {

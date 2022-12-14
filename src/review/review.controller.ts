@@ -18,7 +18,7 @@ import { JwtAuthGuard } from 'src/auth/guard/jwt.guard';
 export class ReviewController {
   constructor(private readonly reviewService: ReviewService) {}
 
-  @Post(':userId/:bikeId')
+  @Post(':userId/:bikeId/:resId')
   @ApiSecurity('JWT-auth')
   @UseGuards(JwtAuthGuard)
   create(

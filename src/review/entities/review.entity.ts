@@ -25,6 +25,9 @@ export class Review {
   bikeId: number;
 
   @Column()
+  resId: number;
+
+  @Column()
   userName: string;
 
   @Column()
