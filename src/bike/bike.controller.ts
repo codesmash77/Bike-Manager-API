@@ -10,6 +10,7 @@ import {
   DefaultValuePipe,
   ParseIntPipe,
   Query,
+  Req,
 } from '@nestjs/common';
 import { ApiQuery, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guard/jwt.guard';
@@ -137,7 +138,7 @@ export class BikeController {
     return this.bikeService.findOne(+id);
   }
 
-  @Patch(':userId/:bikeId')
+  @Patch('/updateBike/:userId/:bikeId')
   @ApiSecurity('JWT-auth')
   @UseGuards(JwtAuthGuard, new RoleGuard(Constants.ROLES.ADMIN_ROLE))
   update(

@@ -1,10 +1,18 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  forwardRef,
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   IPaginationOptions,
   Pagination,
   paginate,
 } from 'nestjs-typeorm-paginate';
+import { ReservationService } from 'src/reservation/reservation.service';
+import { ReviewService } from 'src/review/review.service';
 import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
 
@@ -18,6 +26,10 @@ export class BikeService {
     @InjectRepository(Bike)
     private BikeRepository: Repository<Bike>,
     private userService: UserService,
+    @Inject(forwardRef(() => ReservationService))
+    private reservationService: ReservationService,
+    @Inject(forwardRef(() => ReviewService))
+    private reviewService: ReviewService,
   ) {}
 
   async create(createBikeDto: CreateBikeDto, userId: number) {
@@ -65,7 +77,7 @@ export class BikeService {
     return paginate<Bike>(queryBuilder, options);
   }
 
-    async findAllAdmin(
+  async findAllAdmin(
     model: string,
     color: string,
     location: string,
@@ -105,6 +117,7 @@ export class BikeService {
       where: { id: bikeId },
     });
     if (user?.role === 'ADMIN' && bike) {
+      await this.reservationService.deleteAllReservationsByBikeId(bikeId);
       return await this.BikeRepository.delete(bikeId);
     } else
       return console.error('Regular Users are not authorised to delete Bikes');

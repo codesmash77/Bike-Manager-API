@@ -1,4 +1,10 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  forwardRef,
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   IPaginationOptions,
@@ -6,14 +12,9 @@ import {
   paginate,
 } from 'nestjs-typeorm-paginate';
 import { BikeService } from 'src/bike/bike.service';
+import { ReviewService } from 'src/review/review.service';
 import { UserService } from 'src/user/user.service';
-import {
-  LessThan,
-  LessThanOrEqual,
-  MoreThan,
-  MoreThanOrEqual,
-  Repository,
-} from 'typeorm';
+import { LessThan, MoreThan, Repository } from 'typeorm';
 
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { UpdateReservationDto } from './dto/update-reservation.dto';
@@ -24,7 +25,10 @@ export class ReservationService {
   constructor(
     @InjectRepository(Reservation)
     private ReservationRepository: Repository<Reservation>,
+    @Inject(forwardRef(() => ReviewService))
+    private reviewService: ReviewService,
     private userService: UserService,
+    @Inject(forwardRef(() => BikeService))
     private bikeService: BikeService,
   ) {}
 
@@ -42,16 +46,14 @@ export class ReservationService {
 
     const user = await this.userService.findUserById(userId);
     const bike = await this.bikeService.findOne(bikeId);
-    const condition = await this.ReservationRepository.findOne({
+    const condition = await this.ReservationRepository.find({
       where: {
-        userId: userId,
         bikeId: bikeId,
         startDate: LessThan(createReservationDto.startDate),
         endDate: MoreThan(createReservationDto.startDate),
       },
     });
-    console.log(condition);
-    if (user && bike && !condition) {
+    if (user && bike && condition?.length === 0) {
       reservation.userId = userId;
       reservation.bikeId = bikeId;
       return await this.ReservationRepository.save(reservation);
@@ -124,7 +126,14 @@ export class ReservationService {
     const reservation = await this.ReservationRepository.findOneOrFail({
       where: { id: reserveId },
     });
-    if (user && reservation)
+    const condition = await this.ReservationRepository.findOne({
+      where: {
+        bikeId: reservation.bikeId,
+        startDate: LessThan(updateReservationDto.startDate),
+        endDate: MoreThan(updateReservationDto.startDate),
+      },
+    });
+    if (user && reservation && !condition)
       return await this.ReservationRepository.save({
         ...reservation,
         ...updateReservationDto,
@@ -152,9 +161,21 @@ export class ReservationService {
     const reservation = await this.ReservationRepository.findOneOrFail({
       where: { id: reserveId },
     });
-    if (user && reservation)
+    if (user && reservation) {
+      await this.reviewService.deleteAllReviewsByResId(reserveId);
       return await this.ReservationRepository.delete(reserveId);
-    else
+    } else
       return console.error('Reservation does not exist or user does not exist');
+  }
+
+  async deleteAllReservationsByBikeId(bikeId: number) {
+    const reservations = await this.ReservationRepository.find({
+      where: { bikeId: bikeId },
+    });
+    if (reservations) {
+      for (let i = 0; i < reservations.length; i++)
+        await this.reviewService.deleteAllReviewsByResId(reservations[i].id);
+      return await this.ReservationRepository.remove(reservations);
+    }
   }
 }

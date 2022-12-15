@@ -1,4 +1,10 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  forwardRef,
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   IPaginationOptions,
@@ -17,7 +23,9 @@ export class ReviewService {
   constructor(
     @InjectRepository(Review)
     private ReviewRepository: Repository<Review>,
+    @Inject(forwardRef(() => ReservationService))
     private reservationService: ReservationService,
+    @Inject(forwardRef(() => BikeService))
     private bikeService: BikeService,
   ) {}
 
@@ -55,7 +63,7 @@ export class ReviewService {
           (avg + review?.rating) / (reviews.length + 1),
         );
         await this.bikeService.saveBike(bike);
-        return await this.ReviewRepository.create(review);
+        return await this.ReviewRepository.save(review);
       } else {
         throw new HttpException(
           {
@@ -78,14 +86,21 @@ export class ReviewService {
     }
   }
 
-  findAllReviewsByBikeId(bikeId: number) {
-    return this.ReviewRepository.find({
+  async findAllReviewsByBikeId(bikeId: number) {
+    return await this.ReviewRepository.find({
       where: { bikeId: bikeId },
     });
   }
 
-  findOne(id: number) {
-    return this.ReviewRepository.find({
+  async deleteAllReviewsByResId(resId: number) {
+    const reviews = await this.ReviewRepository.find({
+      where: { resId: resId },
+    });
+    if (reviews) return await this.ReviewRepository.remove(reviews);
+  }
+
+  async findOne(id: number) {
+    return await this.ReviewRepository.find({
       where: { id: id },
     });
   }

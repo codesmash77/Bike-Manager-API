@@ -55,36 +55,47 @@ export class UserController {
   @ApiSecurity('JWT-auth')
   @UseGuards(JwtAuthGuard, new RoleGuard(Constants.ROLES.ADMIN_ROLE))
   upgradeUser(@Param('id') id: string, @Req() req) {
-    return this.userService.upgradeUser(+id);
+    if (req?.user?.userId !== +id) return this.userService.upgradeUser(+id);
+  }
+
+  @Patch('/downgrade/:id')
+  @ApiSecurity('JWT-auth')
+  @UseGuards(JwtAuthGuard, new RoleGuard(Constants.ROLES.ADMIN_ROLE))
+  downgradeUser(@Param('id') id: string, @Req() req) {
+    if (req?.user?.userId !== +id) return this.userService.downgradeUser(+id);
   }
 
   @Patch(':id')
   @ApiSecurity('JWT-auth')
   @UseGuards(JwtAuthGuard, new RoleGuard(Constants.ROLES.ADMIN_ROLE))
-  update(
+  async update(
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
     @Req() req,
   ) {
-    return this.userService.update(+id, updateUserDto);
+    const condition = await this.userService.findUserById(req?.user?.userId);
+    if (condition) return this.userService.update(+id, updateUserDto);
   }
 
   @Patch('/update/:id')
   @ApiSecurity('JWT-auth')
   @UseGuards(JwtAuthGuard)
-  updateUser(
+  async updateUser(
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
     @Req() req,
   ) {
-    return this.userService.updateUser(+id, updateUserDto);
+    const condition = await this.userService.findUserById(req?.user?.userId);
+    if (condition) return this.userService.updateUser(+id, updateUserDto);
   }
 
   //FOR ADMIN
   @Delete(':id')
   @ApiSecurity('JWT-auth')
   @UseGuards(JwtAuthGuard, new RoleGuard(Constants.ROLES.ADMIN_ROLE))
-  remove(@Param('id') id: string, @Req() req) {
-    return this.userService.remove(+id);
+  async remove(@Param('id') id: string, @Req() req) {
+    const condition = await this.userService.findUserById(req?.user?.userId);
+    if (req?.user?.userId !== +id && condition)
+      return this.userService.remove(+id);
   }
 }

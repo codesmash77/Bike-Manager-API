@@ -49,6 +49,14 @@ export class UserService {
     return await this.UserRepository.save(user);
   }
 
+  async downgradeUser(id: number) {
+    const user = await this.UserRepository.findOneOrFail({ where: { id: id } });
+    if (user.role === Constants.ROLES.ADMIN_ROLE) {
+      user.role = Constants.ROLES.REGULAR_ROLE;
+    }
+    return await this.UserRepository.save(user);
+  }
+
   async update(id: number, updateUserDto: UpdateUserDto) {
     const user = await this.UserRepository.findOneOrFail({ where: { id: id } });
     if (user) {
