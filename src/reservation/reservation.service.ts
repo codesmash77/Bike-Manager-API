@@ -49,8 +49,7 @@ export class ReservationService {
     const condition = await this.ReservationRepository.find({
       where: {
         bikeId: bikeId,
-        startDate: LessThan(createReservationDto.startDate),
-        endDate: MoreThan(createReservationDto.startDate),
+        endDate: LessThan(createReservationDto.startDate),
       },
     });
     if (user && bike && condition?.length === 0) {
